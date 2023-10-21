@@ -26,7 +26,7 @@ async function run() {
 
     const productCollection = client.db("productDB").collection("products");
 
-    app.get("/products", async(req, res) => {
+    app.get("/products", async (req, res) => {
       const cursor = productCollection.find();
       const result = await cursor.toArray();
       res.send(result);
@@ -37,37 +37,57 @@ async function run() {
       const result = await productCollection.insertOne(product);
       console.log(result);
       res.send(result);
-    }); 
-    
-    app.get("/products/:id", async(req, res) => {
+    });
+
+    app.get("/products/:id", async (req, res) => {
       const id = req.params.id;
-      const query = {_id: new ObjectId(id)}
+      const query = { _id: new ObjectId(id) }
       const result = await productCollection.findOne(query);
       res.send(result);
     })
 
-    app.delete("/products/:id", async(req, res) => {
+    app.delete("/products/:id", async (req, res) => {
       const id = req.params.id;
-      const query = {_id: new ObjectId(id)}
+      const query = { _id: new ObjectId(id) }
       const result = await productCollection.deleteOne(query);
       res.send(result);
     })
 
+    app.put("/products/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) }
+      const options = { upsert: true };
+      const updatedProducts = req.body;
+      const products = {
+        $set: {
+          name: updatedProducts.name,
+          brandName: updatedProducts.brandName,
+          type: updatedProducts.type,
+          price: updatedProducts.price,
+          rating: updatedProducts.rating,
+          image: updatedProducts.image,
+          description: updatedProducts.description
+        }
+      }
+      const result = await productCollection.updateOne(filter, products, options);
+      res.send(result);
+    })
 
-   // await client.db("admin").command({ ping: 1 });
+
+    // await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
-    
+
     //await client.close();
   }
 }
 run().catch(console.dir);
 
 
-app.get('/', (req, res) =>{
-    res.send('EvoAutos server is running')
+app.get('/', (req, res) => {
+  res.send('EvoAutos server is running')
 })
 
-app.listen(port, ()=>{
-    console.log(`EvoAutos is running on port: ${port}`);
+app.listen(port, () => {
+  console.log(`EvoAutos is running on port: ${port}`);
 })
